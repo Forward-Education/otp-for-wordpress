@@ -57,15 +57,14 @@ class Otp
     {
         $secret = sha1(uniqid());
         $expiry = $this->expiry;
-        $ttl = DateInterval::createFromDateString("{$expiry} seconds");
-        $this->store->put($this->keyFor($key), $secret, $ttl);
+        set_transient($this->keyFor($key), $secret, $expiry);
 
         return $this->calculate($secret);
     }
 
     public function check($code, $key): bool
     {
-        $secret = $this->store->get($this->keyFor($key));
+        $secret = get_transient($this->keyFor($key));
         if (empty($secret)) {
             return false;
         }
@@ -81,7 +80,7 @@ class Otp
 
     public function forget($key): bool
     {
-        return $this->store->forget($this->keyFor($key));
+        return delete_transient($this->keyFor($key));
     }
 
     protected function keyFor($key): string
